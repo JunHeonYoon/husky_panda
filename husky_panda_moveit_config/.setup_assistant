@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: husky_panda_description
+    relative_path: urdf/husky_panda.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/husky_panda.srdf
+  CONFIG:
+    author_name: YoonJunHeon
+    author_email: yoonjh982@snu.ac.kr
+    generated_timestamp: 1722321381

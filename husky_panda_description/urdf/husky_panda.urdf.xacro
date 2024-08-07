@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="husky_panda">
+
+  <xacro:arg name="arm_id" default="panda" />
+  <xacro:arg name="hand" default="true" />
+  <xacro:arg name="mobile_base" default="true" />
+
+  <xacro:if value="$(arg mobile_base)">
+    <xacro:include filename="$(find husky_description)/urdf/husky.urdf.xacro" />
+    <!-- Spawn default top structure -->
+    <link name="top_structure_link">
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://husky_panda_description/meshes/roas_dyros.stl"/>
+        </geometry>
+        <material name="medium_grey">
+          <color rgba="0.6 0.6 0.6 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin rpy="0 0 0" xyz="-0.2 0 0.85"/>
+        <geometry>
+          <box size="0.38992 0.56 1.365"/>
+        </geometry>
+        <inertial>
+          <origin rpy="0 0 0" xyz="-0.2 0 0.45"/>
+          <mass value="40"/>
+          <inertia ixx="1.95397859e-01" ixy="7.23330468e-08" ixz="2.01114568e-02" iyy="1.92679403e-01" iyz="-7.81325404e-05" izz="1.01958752e-01"/>
+        </inertial>
+      </collision>
+    </link>
+    <!-- Attach default top plate -->
+    <joint name="top_structure_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="top_structure_link"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    </joint>
+  </xacro:if>
+  <xacro:unless value="$(arg mobile_base)">
+    <link name="base_link"/>
+  </xacro:unless>
+  
+  <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro"/>
+  <xacro:franka_arm arm_id="$(arg arm_id)" connected_to="base_link"  xyz="0.3 0.0 0.256" gazebo="true"
+  joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}"/>  
+  <xacro:if value="$(arg hand)">
+      <xacro:include filename="$(find franka_description)/robots/common/franka_hand.xacro"/>
+      <xacro:franka_hand
+          arm_id="$(arg arm_id)"
+          rpy="0 0 ${-pi/4}"
+          connected_to="$(arg arm_id)_link8"
+          safety_distance="0.03"
+          gazebo="true"
+       />
+  </xacro:if>
+</robot>

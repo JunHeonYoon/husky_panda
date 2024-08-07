@@ -1,0 +1,16 @@
+<package>
+  <name>husky_panda_description</name>
+  <version>0.5.0</version>
+
+  <description>This package contains Husky Panda Rviz tools.</description>
+  <author email="yoonjh98@snu.ac.kr">YoonJunHeon</author>
+
+  <maintainer email="yoonjh98@snu.ac.kr">YoonJunHeon</maintainer>
+
+  <license>BSD</license>
+  <url>http://ros.org/wiki/urdf_tutorial</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>xacro</run_depend>
+
+</package>
