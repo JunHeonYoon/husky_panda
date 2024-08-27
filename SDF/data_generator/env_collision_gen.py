@@ -9,6 +9,9 @@ import sys
 import pickle
 import argparse
 from multiprocessing import Process, Queue
+import rospy
+import tf2_ros
+
 
 np.printoptions(precision=3, suppress=True, linewidth=100, threshold=10000)
 np.set_printoptions(threshold=sys.maxsize)
@@ -16,6 +19,20 @@ title_font = {
     'fontsize': 16,
     'fontweight': 'bold'
 }
+
+def get_link_transform(tf_buffer, target_frame, source_frame):
+    try:
+        transform = tf_buffer.lookup_transform(target_frame, source_frame, rospy.Time(0), rospy.Duration(1.0))
+        return transform.transform
+    except tf2_ros.LookupException as e:
+        rospy.logwarn(f"Could not find the transform from {source_frame} to {target_frame}: {e}")
+        return None
+    except tf2_ros.ConnectivityException as e:
+        rospy.logwarn(f"Connectivity error while looking up transform: {e}")
+        return None
+    except tf2_ros.ExtrapolationException as e:
+        rospy.logwarn(f"Extrapolation error while looking up transform: {e}")
+        return None
 
 
 def main(args):
@@ -35,14 +52,6 @@ def main(args):
     obs_num_limit = np.array([5,     # min
                               10])   # max
 
-    base2panda = np.array([0.3, 0, 0.256])
-    base2cam = np.array([-0.170, 0, 1.5825])
-    cam2view = np.array([np.cos(20/180*np.pi), 0, -np.sin(20/180*np.pi)])
-
-    scene_bound = np.array([[-0.9, -0.9, -0.4],
-                            [0.9, 0.9, 1.4]])
-    scene_bound = scene_bound + base2panda
-
 
     data_dir = "env_data"
     if not os.path.exists(data_dir): os.mkdir(data_dir)
@@ -56,11 +65,27 @@ def main(args):
         dataset = []
     
         # Create Planning Scene
-        pc = PlanningScene(arm_names=["panda"], arm_dofs=[7], base_link="panda_link0", topic_name="planning_scene_" + str(id))
+        pc = PlanningScene(arm_names=["panda"], arm_dofs=[7], base_link="base_link", topic_name="planning_scene_" + str(id))
+        
+        # Get TF
+        try:
+            tf_buffer = tf2_ros.Buffer()
+            tf_listener = tf2_ros.TransformListener(tf_buffer)
+            base2panda_tf = get_link_transform(tf_buffer, "base_link", "panda_link0")
+            base2panda = np.array([base2panda_tf.translation.x, base2panda_tf.translation.y, base2panda_tf.translation.z])
+            base2cam_tf = get_link_transform(tf_buffer, "base_link", "depth_camera_link")
+            base2cam = np.array([base2cam_tf.translation.x, base2cam_tf.translation.y, base2cam_tf.translation.z])
+            cam2view = np.array([np.cos(35/180*np.pi), 0, -np.sin(35/180*np.pi)]) # 35 degree below view
+        finally:
+            del tf_listener
+            del tf_buffer
 
         # Create cameras
-        vs = VisualSimulator(width=640, height=576) # Azure Kinect SDK (mode: NFOV_UNBINNED)
-        vs.set_cam_and_target_pose(cam_pos=-base2panda+base2cam, target_pos=-base2panda+base2cam+cam2view)
+        vs = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=2.21) # Azure Kinect SDK (mode: NFOV_UNBINNED)
+        vs.set_cam_and_target_pose(cam_pos=base2cam, target_pos=base2cam+cam2view)
+        scene_bound = np.array([[-0.9, -0.9, -0.4],
+                            [0.9, 0.9, 1.4]]) # rough panda workspace
+        scene_bound = scene_bound + base2panda
         vs.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
         vs.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / args.voxel_res)
 

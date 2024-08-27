@@ -4,33 +4,65 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
 import torch
-from SDF.neural_network.env_collision_model_ver2 import EnvCollNet
+from env_collision_model_ver1 import EnvCollNet
 
 np.printoptions(precision=3, suppress=True, linewidth=100, threshold=10000)
+
+import rospy
+import tf2_ros
+
+def get_link_transform(tf_buffer, target_frame, source_frame):
+    try:
+        transform = tf_buffer.lookup_transform(target_frame, source_frame, rospy.Time(0), rospy.Duration(1.0))
+        return transform.transform
+    except tf2_ros.LookupException as e:
+        rospy.logwarn(f"Could not find the transform from {source_frame} to {target_frame}: {e}")
+        return None
+    except tf2_ros.ConnectivityException as e:
+        rospy.logwarn(f"Connectivity error while looking up transform: {e}")
+        return None
+    except tf2_ros.ExtrapolationException as e:
+        rospy.logwarn(f"Extrapolation error while looking up transform: {e}")
+        return None
+
 
 joint_limit = np.array([[-2.8973,-1.7628,-2.8973,-3.0718,-2.8973,-0.0175,-2.8973],
                         [ 2.8973, 1.7628, 2.8973,-0.0698, 2.8973, 3.7525, 2.8973]])
 
-workspace = np.array([[-pi/3, 0.4, 0],      # min (Angle, Radius, Height)
-                      [pi/3,  0.9, 1.0]]) # max (Angle, Radius, Height)
-obs_size_limit = np.array([[0.1, 0.1, 0.1], # min (Width, Depth, Height)
+workspace = np.array([[-pi/3, 0.4, 0],         # min (Angle, Radius, Height)
+                      [pi/3,  0.9, 1.0]])      # max (Angle, Radius, Height)
+obs_size_limit = np.array([[0.1, 0.1, 0.1],    # min (Width, Depth, Height)
                            [0.2, 0.2, 0.2]])   # max (Width, Depth, Height)
 obs_num_limit = np.array([5,     # min
-                          10])  # max
+                          10])   # max
 
-base2panda = np.array([0.3, 0, 0.256])
-base2cam = np.array([-0.170, 0, 1.5825])
-cam2view = np.array([np.cos(20/180*np.pi), 0, -np.sin(20/180*np.pi)])
+pc = PlanningScene(arm_names=['panda'], arm_dofs=[7], base_link="panda_link0")
+vs = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=2.21) # Azure Kinect SDK (mode: NFOV_UNBINNED)
 
+tf_buffer = tf2_ros.Buffer()
+tf_listener = tf2_ros.TransformListener(tf_buffer)
+
+base2panda_tf = get_link_transform(tf_buffer, "base_link", "panda_link0")
+base2panda = np.array([base2panda_tf.translation.x, base2panda_tf.translation.y, base2panda_tf.translation.z])
+base2cam_tf = get_link_transform(tf_buffer, "base_link", "depth_camera_link")
+base2cam = np.array([base2cam_tf.translation.x, base2cam_tf.translation.y, base2cam_tf.translation.z])
+cam2view = np.array([np.cos(35/180*np.pi), 0, -np.sin(35/180*np.pi)]) # 35 degree below view
+
+vs.set_cam_and_target_pose(cam_pos=base2cam, target_pos=base2cam+cam2view) # 35 degree below view
 scene_bound = np.array([[-0.9, -0.9, -0.4],
-                        [0.9, 0.9, 1.4]])
+                        [0.9, 0.9, 1.4]]) # rough panda workspace
+scene_bound = scene_bound + base2panda
+vs.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+
 voxel_res = 0.05 # [m]
+vs.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / voxel_res)
+
 
 # NN model load
-date = "2024_08_02_17_50_33/"
-model_file_name = "self_collision.pkl"
+date = "2024_08_26_22_32_27/"
+model_file_name = "env_collision.pkl"
 
-model_dir = "model/env_collsion/" + date + model_file_name
+model_dir = "model/env_collsion_ver1/" + date + model_file_name
 device = torch.device('cpu')
 
 model = EnvCollNet(dof=7).to(device)
@@ -38,15 +70,6 @@ model = EnvCollNet(dof=7).to(device)
 model_state_dict = torch.load(model_dir, map_location=device)
 model.load_state_dict(model_state_dict)
 
-# Create planning scene
-pc = PlanningScene(arm_names=['panda'], arm_dofs=[7], base_link="panda_link0")
-
-# Create Visual simulator
-vs = VisualSimulator(width=640, height=576) # Azure Kinect SDK (mode: NFOV_UNBINNED)
-vs.set_cam_and_target_pose(cam_pos=-base2panda+base2cam, target_pos=-base2panda+base2cam+cam2view)
-scene_bound = scene_bound + base2panda
-vs.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
-vs.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / voxel_res)
 
 # Plot
 plt.ion()
