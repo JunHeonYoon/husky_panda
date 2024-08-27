@@ -6,7 +6,7 @@ import torch.nn as nn
 import argparse
 import pickle
 import numpy as np
-from SDF.neural_network.env_collision_model_ver1 import EnvCollNet
+from env_collision_model_ver1 import EnvCollNet
 import datetime as dt
 
 from torch.utils.data import Dataset
@@ -66,7 +66,7 @@ class CollisionNetDataset(Dataset):
 
 
 def main(args):
-    file_name = "../data_generator/env_data/2024_08_01_17_42_04/dataset.pickle"
+    file_name = "../data_generator/env_data/2024_08_26_21_56_25/dataset.pickle"
     train_ratio = 0.999
     test_ratio = 1 - train_ratio
     

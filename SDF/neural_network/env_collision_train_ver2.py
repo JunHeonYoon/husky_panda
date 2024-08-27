@@ -6,7 +6,7 @@ import torch.nn as nn
 import argparse
 import pickle
 import numpy as np
-from SDF.neural_network.env_collision_model_ver2 import EnvCollNet
+from env_collision_model_ver2 import EnvCollNet
 import datetime as dt
 
 from torch.utils.data import Dataset
