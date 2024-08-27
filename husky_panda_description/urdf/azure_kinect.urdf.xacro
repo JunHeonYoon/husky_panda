@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<robot name="azure-kinect" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <link name="camera_base">
+    <visual>
+      <origin rpy="1.5708 0 1.5708" xyz="-0.0259 0 0"/>
+      <geometry>
+        <mesh filename="package://husky_panda_description/meshes/Azure_Kinect_DK.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="grey">
+        <color rgba="0.6 0.6 0.6 1" />
+      </material>
+    </visual>
+  </link>
+
+  <link name="depth_camera_link"/>
+  <joint name="cam2base_joint" type="fixed">
+    <parent link="camera_base"/>
+    <child link="depth_camera_link"/>
+    <origin rpy="-1.6755133 0.0000028 -1.5707995" xyz="0 0 0.0018"/>
+  </joint>
+
+  <link name="imu_camera_link"/>
+  <joint name="depth2imu_joint" type="fixed">
+    <parent link="depth_camera_link"/>
+    <child link="imu_camera_link"/>
+    <origin rpy="-0.0014611 1.4592022 1.5710739" xyz="0.00346563 0.00415245 -0.0507355"/>
+  </joint>
+
+  <link name="rgb_camera_link"/>
+  <joint name="depth2rgb_joint" type="fixed">
+    <parent link="depth_camera_link"/>
+    <child link="rgb_camera_link"/>
+    <origin rpy="0.1027897 0.0048339 0.0004876" xyz="0.0320149 0.00252428 -0.00366382"/>
+  </joint>
+
+</robot>

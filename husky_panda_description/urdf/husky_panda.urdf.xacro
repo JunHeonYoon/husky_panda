@@ -7,7 +7,7 @@
 
   <xacro:if value="$(arg mobile_base)">
     <xacro:include filename="$(find husky_description)/urdf/husky.urdf.xacro" />
-    <!-- Spawn default top structure -->
+
     <link name="top_structure_link">
       <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -30,7 +30,6 @@
         </inertial>
       </collision>
     </link>
-    <!-- Attach default top plate -->
     <joint name="top_structure_joint" type="fixed">
       <parent link="base_link"/>
       <child link="top_structure_link"/>
@@ -39,7 +38,40 @@
   </xacro:if>
   <xacro:unless value="$(arg mobile_base)">
     <link name="base_link"/>
+
+    <link name="top_structure_link"/>
+    <joint name="top_structure_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="top_structure_link"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    </joint>
   </xacro:unless>
+
+  <!-- For Azure Kinect -->
+  <link name="kinect_suppot_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://husky_panda_description/meshes/Azure_Kinect_suppoter.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="medium_grey">
+        <color rgba="0.6 0.6 0.6 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="kinect_support_joint" type="fixed">
+    <parent link="top_structure_link"/>
+    <child link="kinect_suppot_link"/>
+    <origin rpy="2.1817 0 1.5708" xyz="-0.0892 0.0 1.3723"/>
+  </joint>
+
+  <xacro:include filename="$(find husky_panda_description)/urdf/azure_kinect.urdf.xacro" />
+  <joint name="kinect_joint" type="fixed">
+    <parent link="kinect_suppot_link"/>
+    <child link="camera_base"/>
+    <origin rpy="0 -1.5707963 -1.5707963" xyz="0 0 0.0259"/>
+  </joint>
   
   <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro"/>
   <xacro:franka_arm arm_id="$(arg arm_id)" connected_to="base_link"  xyz="0.3 0.0 0.256" gazebo="true"
