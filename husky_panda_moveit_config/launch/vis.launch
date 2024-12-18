@@ -1,0 +1,30 @@
+<launch>
+  <!-- By default, we are not in debug mode -->
+  <arg name="debug" default="false" />
+
+  <!-- By default, we will load or override the robot_description -->
+  <arg name="load_robot_description" default="true"/>
+
+  <arg name="mobile_base" default="true" />
+  
+
+  <include file="$(dirname)/planning_context.launch">
+    <arg name="load_robot_description" value="$(arg load_robot_description)" />
+    <arg name="mobile_base" value="$(arg mobile_base)" />
+  </include>
+
+  <!-- By default, hide joint_state_publisher's GUI in 'fake' controller_manager mode -->
+  <arg name="use_gui" default="false" />
+  <arg name="use_rviz" default="true" />
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node if="$(arg use_gui)" name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+  <node unless="$(arg use_gui)" name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <arg name="rvizconfig" default="$(find husky_panda_moveit_config)/config/rviz.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" if="$(arg use_rviz)" />
+
+
+
+</launch>

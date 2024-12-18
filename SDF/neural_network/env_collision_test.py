@@ -59,7 +59,7 @@ vs.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / voxel_res)
 
 
 # NN model load
-date = "2024_08_26_22_32_27/"
+date = "2024_08_02_17_50_33/"
 model_file_name = "env_collision.pkl"
 
 model_dir = "model/env_collsion_ver1/" + date + model_file_name
@@ -69,6 +69,7 @@ model = EnvCollNet(dof=7).to(device)
 
 model_state_dict = torch.load(model_dir, map_location=device)
 model.load_state_dict(model_state_dict)
+model.eval()
 
 
 # Plot
@@ -118,7 +119,6 @@ for env_iter in range(1000):
         pc.display(q)
         env_min_dist = pc.min_distance(q, False, True)*100
         with torch.no_grad():
-            model.eval()
             x_q = torch.from_numpy(q.reshape(1, -1).astype(np.float32)).to(device)
             x_occ = torch.from_numpy(voxel_grid.reshape(1,1,36,36,36).astype(np.float32)).to(device)
             # jac = torch.autograd.functional.jacobian(model, x)

@@ -35,9 +35,9 @@
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="panda_hand" parent_link="panda_hand" group="panda_hand"/>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
-    <virtual_joint name="virtuual_joint" type="planar" parent_frame="world" child_link="base_link"/>
+    <virtual_joint name="virtual_joint" type="planar" parent_frame="world" child_link="base_link"/>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
-    <disable_collisions link1="panda_hand" link2="panda_leftfinger" reason="Adjacent"/>
+    <!-- <disable_collisions link1="panda_hand" link2="panda_leftfinger" reason="Adjacent"/>
     <disable_collisions link1="panda_hand" link2="panda_link3" reason="Never"/>
     <disable_collisions link1="panda_hand" link2="panda_link4" reason="Never"/>
     <disable_collisions link1="panda_hand" link2="panda_link5" reason="Default"/>
@@ -71,5 +71,60 @@
     <disable_collisions link1="panda_link5" link2="panda_link7" reason="Default"/>
     <disable_collisions link1="panda_link6" link2="panda_link7" reason="Adjacent"/>
     <disable_collisions link1="panda_link6" link2="panda_rightfinger" reason="Never"/>
-    <disable_collisions link1="panda_link7" link2="panda_rightfinger" reason="Never"/>
+    <disable_collisions link1="panda_link7" link2="panda_rightfinger" reason="Never"/> -->
+
+    <disable_collisions link1="panda_leftfinger" link2="panda_link0_sc" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="panda_link1_sc" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="panda_link2_sc" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="panda_link3_sc" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="panda_link4_sc" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="panda_link5_sc" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="panda_link6_sc" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="panda_link7_sc" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="panda_hand_sc" reason="Never"/>
+
+    <disable_collisions link1="panda_rightfinger" link2="panda_link0_sc" reason="Never"/>
+    <disable_collisions link1="panda_rightfinger" link2="panda_link1_sc" reason="Never"/>
+    <disable_collisions link1="panda_rightfinger" link2="panda_link2_sc" reason="Never"/>
+    <disable_collisions link1="panda_rightfinger" link2="panda_link3_sc" reason="Never"/>
+    <disable_collisions link1="panda_rightfinger" link2="panda_link4_sc" reason="Never"/>
+    <disable_collisions link1="panda_rightfinger" link2="panda_link5_sc" reason="Never"/>
+    <disable_collisions link1="panda_rightfinger" link2="panda_link6_sc" reason="Never"/>
+    <disable_collisions link1="panda_rightfinger" link2="panda_link7_sc" reason="Never"/>
+    <disable_collisions link1="panda_rightfinger" link2="panda_hand_sc" reason="Never"/>
+
+    <disable_collisions link1="panda_leftfinger" link2="panda_rightfinger" reason="Never"/>
+    
+    <disable_collisions link1="panda_hand_sc" link2="panda_link3_sc" reason="Never"/>
+    <disable_collisions link1="panda_hand_sc" link2="panda_link4_sc" reason="Never"/>
+    <disable_collisions link1="panda_hand_sc" link2="panda_link5_sc" reason="Default"/>
+    <disable_collisions link1="panda_hand_sc" link2="panda_link6_sc" reason="Never"/>
+    <disable_collisions link1="panda_hand_sc" link2="panda_link7_sc" reason="Adjacent"/>
+    <disable_collisions link1="panda_hand_sc" link2="panda_link3_sc" reason="Never"/>
+    <disable_collisions link1="panda_hand_sc" link2="panda_link4_sc" reason="Never"/>
+    <disable_collisions link1="panda_hand_sc" link2="panda_link6_sc" reason="Never"/>
+    <disable_collisions link1="panda_hand_sc" link2="panda_link7_sc" reason="Never"/>
+    <disable_collisions link1="panda_link0_sc" link2="panda_link1_sc" reason="Adjacent"/>
+    <disable_collisions link1="panda_link0_sc" link2="panda_link2_sc" reason="Never"/>
+    <disable_collisions link1="panda_link0_sc" link2="panda_link3_sc" reason="Never"/>
+    <disable_collisions link1="panda_link0_sc" link2="panda_link4_sc" reason="Never"/>
+    <disable_collisions link1="panda_link1_sc" link2="panda_link2_sc" reason="Adjacent"/>
+    <disable_collisions link1="panda_link1_sc" link2="panda_link3_sc" reason="Never"/>
+    <disable_collisions link1="panda_link1_sc" link2="panda_link4_sc" reason="Never"/>
+    <disable_collisions link1="panda_link2_sc" link2="panda_link3_sc" reason="Adjacent"/>
+    <disable_collisions link1="panda_link2_sc" link2="panda_link4_sc" reason="Never"/>
+    <disable_collisions link1="panda_link3_sc" link2="panda_link4_sc" reason="Adjacent"/>
+    <disable_collisions link1="panda_link3_sc" link2="panda_link5_sc" reason="Never"/>
+    <disable_collisions link1="panda_link3_sc" link2="panda_link6_sc" reason="Never"/>
+    <disable_collisions link1="panda_link3_sc" link2="panda_link7_sc" reason="Never"/>
+    <disable_collisions link1="panda_link4_sc" link2="panda_link5_sc" reason="Adjacent"/>
+    <disable_collisions link1="panda_link4_sc" link2="panda_link6_sc" reason="Never"/>
+    <disable_collisions link1="panda_link4_sc" link2="panda_link7_sc" reason="Never"/>
+    <disable_collisions link1="panda_link5_sc" link2="panda_link6_sc" reason="Adjacent"/>
+    <disable_collisions link1="panda_link5_sc" link2="panda_link7_sc" reason="Default"/>
+    <disable_collisions link1="panda_link6_sc" link2="panda_link7_sc" reason="Adjacent"/>
+    <disable_collisions link1="panda_link3_sc" link2="panda_hand_sc" reason="Never"/>
+    <disable_collisions link1="panda_link4_sc" link2="panda_hand_sc" reason="Never"/>
+    <disable_collisions link1="panda_link6_sc" link2="panda_hand_sc" reason="Never"/>
+    <disable_collisions link1="panda_link7_sc" link2="panda_hand_sc" reason="Never"/>
 </robot>

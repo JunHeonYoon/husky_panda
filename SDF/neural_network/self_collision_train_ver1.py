@@ -2,6 +2,8 @@ from __future__ import division
 import os
 import time
 import torch
+import torch.nn as nn
+
 import argparse
 import pickle
 import numpy as np
@@ -46,16 +48,16 @@ class CollisionNetDataset(Dataset):
         return np.array(self.q[idx],dtype=np.float32), np.array(self.min_dist[idx],dtype=np.float32)
 
 def main(args):
-    file_name = "../data_generator/self_data/2024_07_30_15_46_23/dataset.pickle"
+    file_name = "../data_generator/self_data/2024_09_10_15_12_33/dataset.pickle"
     train_ratio = 0.99
     validation_ratio = 0.005
     test_ratio = 1 - (train_ratio + validation_ratio)
     
     date = dt.datetime.now()
     data_dir = "{:04d}_{:02d}_{:02d}_{:02d}_{:02d}_{:02d}/".format(date.year, date.month, date.day, date.hour, date.minute,date.second)
-    log_dir = 'log/self_collsion_ver1/' + data_dir
-    chkpt_dir = 'model/checkpoints/self_collsion_ver1/' + data_dir
-    model_dir = 'model/self_collsion_ver1/' + data_dir
+    log_dir = 'log/self_collision_ver1/' + data_dir
+    chkpt_dir = 'model/checkpoints/self_collision_ver1/' + data_dir
+    model_dir = 'model/self_collision_ver1/' + data_dir
 
     if not os.path.exists(log_dir): os.makedirs(log_dir)
     if not os.path.exists(chkpt_dir): os.makedirs(chkpt_dir)
@@ -89,7 +91,7 @@ def main(args):
     dataset = CollisionNetDataset(file_name=file_name)
     train_size = int(train_ratio * len(dataset))
     val_size = int(validation_ratio * len(dataset))
-    test_size = int(test_ratio * len(dataset))
+    test_size = len(dataset) - train_size - val_size
     train_dataset, test_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, test_size, val_size])
     train_data_loader = DataLoader(
         dataset=train_dataset, batch_size=args.batch_size, shuffle=True)
@@ -101,18 +103,69 @@ def main(args):
     
     print('data load done. time took {0}'.format(end_time-read_time))
     print('[data len] total: {} train: {}, test: {}'.format(len(dataset), len(train_dataset), len(test_dataset)))
-    
 
+
+    class RankingLoss(nn.Module):
+        def __init__(self, margin):
+            super(RankingLoss, self).__init__()
+            self.margin = margin
+
+            if self.margin is None:
+                self.margin_loss = nn.SoftMarginLoss()
+            else:
+                self.margin_loss = nn.MarginRankingLoss(margin=self.margin)
+
+        def forward(self, preds, y):
+            assert len(preds) % 2 == 0, 'the batch size is not even.'
+
+            preds_i = preds[:preds.size(0) // 2]
+            preds_j = preds[preds.size(0) // 2:]
+            y_i = y[:y.size(0) // 2]
+            y_j = y[y.size(0) // 2:]
+            labels = torch.sign(y_i - y_j)
+
+            if self.margin is None:
+                return self.margin_loss(preds_i-preds_j, labels)
+            else:
+                return self.margin_loss(preds_i, preds_j, labels)
+        
+    class RankingAccuracy(nn.Module):
+        def __init__(self):
+            super(RankingAccuracy, self).__init__()
+
+        def forward(self, preds, y, size_average=True):
+            n = preds.size(0)
+            gt_diff_mat = y.expand(n, n) - y.expand(n, n).t()
+            gt_comparison = torch.sign(gt_diff_mat)
+            pred_diff_mat = preds.expand(n, n) - preds.expand(n, n).t()
+            pred_comparison = torch.sign(pred_diff_mat)
+            acc_mat = (gt_comparison == pred_comparison) + (gt_comparison == 0)
+            m = (gt_comparison == 0).sum().float()
+            acc_mat = torch.sign(acc_mat).float()
+            acc = (acc_mat.sum() - m) / (n * n - m)
+
+            return acc
+            
+    mse_criterion = torch.nn.MSELoss()
+    ranking_criterion = RankingLoss(margin=0.0)
+    accuracy_criterion = RankingAccuracy()
+    
+    
     def loss_fn_fc(y_hat, y):
-        ALL_MSE = torch.nn.functional.mse_loss(y_hat, y, reduction="mean")
+        # ALL_MSE = torch.nn.functional.mse_loss(y_hat, y, reduction="mean")
+        ALL_MSE = mse_criterion(y_hat, y, reduction="mean")
         # free_mask = (y > 5)
         # FREE_MSE = torch.nn.functional.mse_loss(y_hat[free_mask], y[free_mask], reduction="mean") if free_mask.any() else 0
         close_mask = (y < 5) & (y > 0)
-        CLOSE_MSE = torch.nn.functional.mse_loss(y_hat[close_mask], y[close_mask], reduction="mean") if close_mask.any() else 0
+        # CLOSE_MSE = torch.nn.functional.mse_loss(y_hat[close_mask], y[close_mask], reduction="mean") if close_mask.any() else 0
+        CLOSE_MSE = mse_criterion(y_hat[close_mask], y[close_mask], reduction="mean") if close_mask.any() else 0
         # coll_mask = (y < 0)
         # COLL_MSE = torch.nn.functional.mse_loss(y_hat[coll_mask], y[coll_mask], reduction="mean") if coll_mask.any() else 0
 
-        return ALL_MSE + CLOSE_MSE
+        ALL_RANK = ranking_criterion(y, y_hat)
+
+        # return ALL_MSE + CLOSE_MSE
+        return ALL_MSE + CLOSE_MSE + ALL_RANK
     
 
     collnet = SelfCollNet(fc_layer_sizes=layer_size,
@@ -185,6 +238,8 @@ def main(args):
 
             mask_col = test_min_dist < 0
             rmse_col = torch.sqrt(torch.nn.functional.mse_loss(min_dist_hat[mask_col], test_min_dist[mask_col]))
+
+            rank_acc = accuracy_criterion(min_dist, test_min_dist)
         
 
         if epoch == 0:
@@ -206,6 +261,7 @@ def main(args):
         print("[Test] RMSE (free) : {:.3f}".format(rmse_free.item()))
         print("[Test] RMSE (close): {:.3f}".format(rmse_close.item()))
         print("[Test] RMSE (col)  : {:.3f}".format(rmse_col.item()))
+        print("[Test] RANK ACC    : {:.3f}".format(rank_acc))
         print("min_dist           : {}".format(test_min_dist.detach().cpu().numpy()[:4]))
         print("min_dist_hat       : {}".format(min_dist_hat.detach().cpu().numpy()[:4]))
         print("=========================================================================================")
@@ -219,18 +275,22 @@ def main(args):
                                 "Free": rmse_free,
                                 "Close": rmse_close,
                                 "Collision": rmse_col,
-                                }
+                                },
+                    "Test Rank Acc":{
+                                "Over all": rank_acc,
+                                },
                    })
 
         with open(log_file_name, 'a') as f:
-            f.write("Epoch: {} (Saved at {}) / Train Loss: {} / Valid Loss: {} / Test RMSE(all): {} / Test RMSE(free): {} / Test RMSE(close): {} / Test RMSE(col): {}\n".format(epoch,
+            f.write("Epoch: {} (Saved at {}) / Train Loss: {} / Valid Loss: {} / Test RMSE(all): {} / Test RMSE(free): {} / Test RMSE(close): {} / Test RMSE(col): {} / Test Rank Acc\n".format(epoch,
                                                                                                                                                                             epoch - e_notsaved,
                                                                                                                                                                             loss_train,
                                                                                                                                                                             loss_val,
                                                                                                                                                                             overall_rmse,
                                                                                                                                                                             rmse_free,
                                                                                                                                                                             rmse_close,
-                                                                                                                                                                            rmse_col))
+                                                                                                                                                                            rmse_col,
+                                                                                                                                                                            rank_acc))
 
         e_notsaved += 1
     torch.save
@@ -242,7 +302,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--epochs", type=int, default=2000)
+    parser.add_argument("--epochs", type=int, default=1000)
     parser.add_argument("--batch_size", type=int, default=2000000)
     parser.add_argument("--learning_rate", type=float, default=2e-3)
     

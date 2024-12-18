@@ -37,8 +37,8 @@ stomp/panda:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/panda_handa:
-  group_name: panda_handa
+stomp/panda_hand:
+  group_name: panda_hand
   optimization:
     num_timesteps: 60
     num_iterations: 40

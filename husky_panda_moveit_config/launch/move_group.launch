@@ -21,6 +21,11 @@
 
   <arg name="capabilities" default=""/>
   <arg name="disable_capabilities" default=""/>
+
+  <!--Other settings-->
+  <arg name="transmission" default="effort" />
+  <arg name="arm_id" default="panda" />
+
   <!-- load these non-default MoveGroup capabilities (space seperated) -->
   <!--
   <arg name="capabilities" value="
@@ -37,10 +42,12 @@
                 " />
   -->
 
-  <arg name="load_robot_description" default="false" />
+  <arg name="load_robot_description" default="true" />
   <!-- load URDF, SRDF and joint_limits configuration -->
   <include file="$(dirname)/planning_context.launch">
     <arg name="load_robot_description" value="$(arg load_robot_description)" />
+    <arg name="arm_id" value="$(arg arm_id)" />
+    <arg name="mobile_base" value="$(arg mobile_base)" />
   </include>
 
   <!-- Planning Pipelines -->
@@ -69,10 +76,13 @@
   </group>
 
   <!-- Trajectory Execution Functionality -->
-  <include ns="move_group" file="$(dirname)/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
+  <!-- <include ns="move_group" file="$(dirname)/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_manage_controllers" value="true" />
     <arg name="moveit_controller_manager" value="$(arg moveit_controller_manager)" />
     <arg name="fake_execution_type" value="$(arg fake_execution_type)" />
+  </include> -->
+  <include ns="move_group" file="$(dirname)/trajectory_execution.launch.xml" pass_all_args="true" if="$(arg allow_trajectory_execution)">
+    <arg name="moveit_manage_controllers" value="true" />
   </include>
 
   <!-- Sensors Functionality -->

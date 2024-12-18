@@ -1,0 +1,26 @@
+<package>
+  <name>husky_panda_sdf_simulation</name>
+  <version>0.5.0</version>
+
+  <description>This package contains Husky Panda Issac Sim simulation.</description>
+  <author email="yoonjh98@snu.ac.kr">YoonJunHeon</author>
+
+  <maintainer email="yoonjh98@snu.ac.kr">YoonJunHeon</maintainer>
+
+  <license>BSD</license>
+  <url>http://ros.org/wiki/urdf_tutorial</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  
+  <run_depend>xacro</run_depend>
+
+
+</package>

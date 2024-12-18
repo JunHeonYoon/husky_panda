@@ -195,7 +195,7 @@ panda:
     - BITstar
   projection_evaluator: joints(panda_joint1,panda_joint2)
   longest_valid_segment_fraction: 0.005
-panda_handa:
+panda_hand:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -224,5 +224,3 @@ panda_handa:
     - AITstar
     - ABITstar
     - BITstar
-  projection_evaluator: joints(panda_finger_joint1,panda_finger_joint2)
-  longest_valid_segment_fraction: 0.005

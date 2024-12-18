@@ -33,8 +33,7 @@ obs_size_limit = np.array([[0.1, 0.1, 0.1],    # min (Width, Depth, Height)
 obs_num_limit = np.array([5,     # min
                           10])   # max
 
-
-pc = PlanningScene(arm_names=['panda'], arm_dofs=[7], base_link="base_link")
+pc = PlanningScene(arm_names=['panda'], arm_dofs=[7], base_link="panda_link0")
 vs = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=2.21) # Azure Kinect SDK (mode: NFOV_UNBINNED)
 
 tf_buffer = tf2_ros.Buffer()
@@ -74,6 +73,29 @@ title_font = {
 #     "panda_hand",
 # ]
 
+from math import sqrt
+# Create cameras
+vs1 = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=5)
+vs2 = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=5)
+vs3 = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=5)
+vs4 = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=5)
+
+r = 1.5
+vs1.set_cam_and_target_pose(np.array([-r/2,  r*sqrt(3)/2, 0.63    ]), np.array([0, 0, 0.63])) 
+vs2.set_cam_and_target_pose(np.array([-r/2, -r*sqrt(3)/2, 0.63    ]), np.array([0, 0, 0.63]))
+vs3.set_cam_and_target_pose(np.array([-r,    1e-8,        0.63    ]), np.array([0, 0, 0.63]))
+vs4.set_cam_and_target_pose(np.array([ 1e-8, 0,           r + 0.63]), np.array([0, 0, 0.63]))
+
+vs1.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+vs2.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+vs3.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+vs4.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+
+vs1.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / voxel_res)
+vs2.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / voxel_res)
+vs3.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / voxel_res)
+vs4.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / voxel_res)
+
 
 for i in range(1000):
     num_obs = np.random.randint(obs_num_limit[0].item(), obs_num_limit[1].item())
@@ -84,6 +106,7 @@ for i in range(1000):
                    pos = [obs_pos[1]*cos(obs_pos[0]), obs_pos[1]*sin(obs_pos[0]), obs_pos[2]],
                    quat=R.random().as_quat()
                    )
+
     # for link_name in link_names:
     #     transform = get_link_transform(tf_buffer, "base_link", link_name)
     #     if transform:
@@ -98,7 +121,43 @@ for i in range(1000):
 
     vs.load_scene(pc)
     depth = vs.generate_depth_image()
-    voxel_grid = vs.generate_voxel_occupancy()
+    # voxel_grid = vs.generate_voxel_occupancy()
+
+
+    vs1.load_scene(pc)
+    vs2.load_scene(pc)
+    vs3.load_scene(pc)
+    vs4.load_scene(pc)
+
+
+    # pc.add_box(name = "cam_1", 
+    #             dim = [0.1, 0.1, 0.1],
+    #             pos = [-r/2,  r*sqrt(3)/2, 0.63    ],
+    #             quat=[1,0,0,0]
+    #             )
+    # pc.add_box(name = "cam_2", 
+    #             dim = [0.1, 0.1, 0.1],
+    #             pos = [-r/2, -r*sqrt(3)/2, 0.63    ],
+    #             quat=[1,0,0,0]
+    #             )
+    # pc.add_box(name = "cam_3", 
+    #             dim = [0.1, 0.1, 0.1],
+    #             pos = [r,    1e-8,        0.63    ],
+    #             quat=[1,0,0,0]
+    #             )
+    # pc.add_box(name = "cam_4", 
+    #             dim = [0.1, 0.1, 0.1],
+    #             pos =[ 1e-8, 0,           r + 0.63],
+    #             quat=[1,0,0,0]
+    #             )
+
+    voxel_grid1 = vs1.generate_voxel_occupancy()
+    voxel_grid2 = vs2.generate_voxel_occupancy()
+    voxel_grid3 = vs3.generate_voxel_occupancy()
+    voxel_grid4 = vs4.generate_voxel_occupancy()
+    voxel_grid = np.any(np.array([voxel_grid1, voxel_grid2, voxel_grid3, voxel_grid4]), axis=0).astype(int)
+
+
 
     ax1 = plt.figure(1).add_subplot()
     ax1.set_title("depth image", fontsize=16, fontweight='bold', pad=20)

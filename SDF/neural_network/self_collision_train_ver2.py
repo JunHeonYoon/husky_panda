@@ -68,9 +68,9 @@ def main(args):
     
     date = dt.datetime.now()
     data_dir = "{:04d}_{:02d}_{:02d}_{:02d}_{:02d}_{:02d}/".format(date.year, date.month, date.day, date.hour, date.minute,date.second)
-    log_dir = 'log/self_collsion_ver2/' + data_dir
-    chkpt_dir = 'model/checkpoints/self_collsion_ver2/' + data_dir
-    model_dir = 'model/self_collsion_ver2/' + data_dir
+    log_dir = 'log/self_collision_ver2/' + data_dir
+    chkpt_dir = 'model/checkpoints/self_collision_ver2/' + data_dir
+    model_dir = 'model/self_collision_ver2/' + data_dir
 
     if not os.path.exists(log_dir): os.makedirs(log_dir)
     if not os.path.exists(chkpt_dir): os.makedirs(chkpt_dir)

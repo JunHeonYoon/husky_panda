@@ -11,6 +11,8 @@ import argparse
 from multiprocessing import Process, Queue
 import rospy
 import tf2_ros
+from math import sqrt
+
 
 
 np.printoptions(precision=3, suppress=True, linewidth=100, threshold=10000)
@@ -84,10 +86,34 @@ def main(args):
         vs = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=2.21) # Azure Kinect SDK (mode: NFOV_UNBINNED)
         vs.set_cam_and_target_pose(cam_pos=base2cam, target_pos=base2cam+cam2view)
         scene_bound = np.array([[-0.9, -0.9, -0.4],
-                            [0.9, 0.9, 1.4]]) # rough panda workspace
+                                [0.9,   0.9,  1.4]]) # rough panda workspace
         scene_bound = scene_bound + base2panda
         vs.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
         vs.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / args.voxel_res)
+
+
+
+
+        vs1 = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=5)
+        vs2 = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=5)
+        vs3 = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=5)
+        vs4 = VisualSimulator(width=640, height=576, focal_length_x=504.118, focal_length_y=504.12, z_near=0.25, z_far=5)
+
+        r = 1.5
+        vs1.set_cam_and_target_pose(np.array([-r/2,  r*sqrt(3)/2, 0.63    ]), np.array([0, 0, 0.63])) 
+        vs2.set_cam_and_target_pose(np.array([-r/2, -r*sqrt(3)/2, 0.63    ]), np.array([0, 0, 0.63]))
+        vs3.set_cam_and_target_pose(np.array([-r,    1e-8,        0.63    ]), np.array([0, 0, 0.63]))
+        vs4.set_cam_and_target_pose(np.array([ 1e-8, 0,           r + 0.63]), np.array([0, 0, 0.63]))
+
+        vs1.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+        vs2.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+        vs3.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+        vs4.set_scene_bounds(scene_bound[0,:], scene_bound[1,:])
+
+        vs1.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / args.voxel_res)
+        vs2.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / args.voxel_res)
+        vs3.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / args.voxel_res)
+        vs4.set_grid_resolutions((scene_bound[1,:] - scene_bound[0,:]) / args.voxel_res)
 
 
         for env_iter in range(num_envs_per_thread[id]):
@@ -107,7 +133,19 @@ def main(args):
                            )
             vs.load_scene(pc)
             depth = vs.generate_depth_image()
-            voxel_grid = vs.generate_voxel_occupancy()
+            # voxel_grid = vs.generate_voxel_occupancy()
+
+
+            vs1.load_scene(pc)
+            vs2.load_scene(pc)
+            vs3.load_scene(pc)
+            vs4.load_scene(pc)
+
+            voxel_grid1 = vs1.generate_voxel_occupancy()
+            voxel_grid2 = vs2.generate_voxel_occupancy()
+            voxel_grid3 = vs3.generate_voxel_occupancy()
+            voxel_grid4 = vs4.generate_voxel_occupancy()
+            voxel_grid = np.any(np.array([voxel_grid1, voxel_grid2, voxel_grid3, voxel_grid4]), axis=0).astype(int)
 
             # random configuration
             for joint_iter in range(args.num_q_per_env):

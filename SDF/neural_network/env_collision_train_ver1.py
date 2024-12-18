@@ -66,7 +66,7 @@ class CollisionNetDataset(Dataset):
 
 
 def main(args):
-    file_name = "../data_generator/env_data/2024_08_26_21_56_25/dataset.pickle"
+    file_name = "../data_generator/env_data/2024_09_10_15_25_58/dataset.pickle"
     train_ratio = 0.999
     test_ratio = 1 - train_ratio
     
@@ -157,7 +157,7 @@ def main(args):
     mse_criterion = torch.nn.MSELoss()
     ranking_criterion = RankingLoss(margin=0.0)
     accuracy_criterion = RankingAccuracy()
-    
+
     collnet = EnvCollNet(dof=7).to(device)
     print(collnet)
 
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--batch_size", type=int, default=1024)
+    parser.add_argument("--batch_size", type=int, default=2048)
     parser.add_argument("--learning_rate", type=float, default=5e-5)
     parser.add_argument('--mu', type=float, default=1.0)
     

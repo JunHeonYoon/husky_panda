@@ -74,7 +74,7 @@
   </joint>
   
   <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro"/>
-  <xacro:franka_arm arm_id="$(arg arm_id)" connected_to="base_link"  xyz="0.3 0.0 0.256" gazebo="true"
+  <xacro:franka_arm arm_id="$(arg arm_id)" connected_to="base_link"  xyz="0.3 0.0 0.256" gazebo="false" safety_distance="0.02" 
   joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}"/>  
   <xacro:if value="$(arg hand)">
       <xacro:include filename="$(find franka_description)/robots/common/franka_hand.xacro"/>
@@ -83,7 +83,7 @@
           rpy="0 0 ${-pi/4}"
           connected_to="$(arg arm_id)_link8"
           safety_distance="0.03"
-          gazebo="true"
+          gazebo="false"
        />
   </xacro:if>
 </robot>

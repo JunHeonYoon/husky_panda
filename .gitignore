@@ -3,6 +3,7 @@
 *.dot
 *.npy
 *.pkl
+*.pt
 
 SDF/data_generator/env_data
 SDF/data_generator/self_data
@@ -11,3 +12,6 @@ SDF/neural_network/__pycache__
 SDF/neural_network/log
 SDF/neural_network/model
 SDF/neural_network/wandb
+
+SDF/simulation/configs/*.pkl
+SDF/simulation/configs/*.pt
