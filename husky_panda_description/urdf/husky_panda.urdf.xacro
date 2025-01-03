@@ -48,7 +48,7 @@
   </xacro:unless>
 
   <!-- For Azure Kinect -->
-  <link name="kinect_suppot_link">
+  <!-- <link name="kinect_suppot_link">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
@@ -64,17 +64,18 @@
     <parent link="top_structure_link"/>
     <child link="kinect_suppot_link"/>
     <origin rpy="2.1817 0 1.5708" xyz="-0.0892 0.0 1.3723"/>
-  </joint>
+  </joint> -->
 
   <xacro:include filename="$(find husky_panda_description)/urdf/azure_kinect.urdf.xacro" />
-  <joint name="kinect_joint" type="fixed">
+  <xacro:azure_kinect is_reverse="true" />
+  <!-- <joint name="kinect_joint" type="fixed">
     <parent link="kinect_suppot_link"/>
     <child link="camera_base"/>
     <origin rpy="0 -1.5707963 -1.5707963" xyz="0 0 0.0259"/>
-  </joint>
-  
+  </joint> -->
+
   <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro"/>
-  <xacro:franka_arm arm_id="$(arg arm_id)" connected_to="base_link"  xyz="0.3 0.0 0.256" gazebo="false" safety_distance="0.02" 
+  <xacro:franka_arm arm_id="$(arg arm_id)" connected_to="base_link"  xyz="0.36 0.0 0.256" gazebo="false" safety_distance="0.02" 
   joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}"/>  
   <xacro:if value="$(arg hand)">
       <xacro:include filename="$(find franka_description)/robots/common/franka_hand.xacro"/>
@@ -86,4 +87,16 @@
           gazebo="false"
        />
   </xacro:if>
+
+  <!--rgb camera link to panda_link0
+   [[-0.04882053 -0.63533808  0.77068936 -0.51619329]
+    [-0.99871549  0.04152894 -0.02902973 -0.05741105]
+    [-0.01356222 -0.77111664 -0.63654944  1.10626562]
+    [ 0.          0.          0.          1.        ]] -->
+  <joint name="kinect_joint" type="fixed">
+    <parent link="$(arg arm_id)_link0"/>
+    <child link="rgb_camera_link"/>
+    <origin rpy="-2.2608881 0.0135627 -1.6196408" xyz="-0.51619329 -0.05741105 1.10626562"/>
+  </joint>
+
 </robot>
