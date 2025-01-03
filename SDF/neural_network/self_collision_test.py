@@ -2,7 +2,7 @@ from srmt.planning_scene import PlanningScene
 import numpy as np
 from math import pi
 import matplotlib.pyplot as plt
-from self_collision_model_ver1 import SelfCollNet
+from SDF.neural_network.self_collision_model import SelfCollNet
 import torch
 
 

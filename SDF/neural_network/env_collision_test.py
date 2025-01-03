@@ -4,7 +4,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
 import torch
-from env_collision_model_ver1 import EnvCollNet
+from SDF.neural_network.env_collision_model import EnvCollNet
 
 np.printoptions(precision=3, suppress=True, linewidth=100, threshold=10000)
 

@@ -7,7 +7,7 @@ import torch.nn as nn
 import argparse
 import pickle
 import numpy as np
-from self_collision_model_ver1 import SelfCollNet
+from SDF.neural_network.self_collision_model import SelfCollNet
 import datetime as dt
 
 from torch.utils.data import Dataset

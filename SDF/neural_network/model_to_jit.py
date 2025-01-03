@@ -1,5 +1,5 @@
 import torch
-from env_collision_model_ver1 import EnvCollNet
+from SDF.neural_network.env_collision_model import EnvCollNet
 
 # NN model load
 date = "2024_08_02_17_50_33/"
